@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>デカブサ式・反射攻防プロト（超簡易）</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#121a22;
+    --text:#e9eef6;
+    --muted:rgba(233,238,246,0.65);
+    --good:#65ff9a;
+    --bad:#ff6b6b;
+    --line:rgba(255,255,255,0.14);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#07090c,#0b0f14);
+    color:var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  .wrap{
+    max-width:780px;
+    margin:0 auto;
+    padding:14px 12px 24px;
+  }
+  .top{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  .title{
+    font-weight:800;
+    letter-spacing:0.04em;
+    font-size:16px;
+    opacity:0.95;
+  }
+  .btn{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.06);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    user-select:none;
+  }
+  .btn:active{transform:translateY(1px)}
+  .row{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:12px;
+  }
+  .panel{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.04);
+    border-radius:14px;
+    padding:12px;
+  }
+  .hud{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .pname{
+    font-weight:800;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tag{
+    font-size:12px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--muted);
+  }
+  .tag.att{color:var(--good); border-color:rgba(101,255,154,0.35)}
+  .tag.def{color:#8fb5ff; border-color:rgba(143,181,255,0.35)}
+  .hp{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing:0.08em;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .center{
+    text-align:center;
+    padding:10px 8px 2px;
+  }
+  .mark{
+    font-size:44px;
+    font-weight:900;
+    letter-spacing:0.06em;
+    margin:4px 0 6px;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+  }
+  .bar{
+    height:10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.04);
+    overflow:hidden;
+    margin:10px auto 0;
+    max-width:420px;
+  }
+  .fill{
+    height:100%;
+    width:100%;
+    background:linear-gradient(90deg, rgba(101,255,154,0.85), rgba(143,181,255,0.85));
+    transform-origin:left center;
+  }
+
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .ctrlTitle{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .keys{
+    font-size:12px;color:var(--muted);
+    border:1px solid var(--line);
+    padding:4px 8px;border-radius:999px;
+  }
+  .grid3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+  .kbtn{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,0.06);
+    color:var(--text);
+    padding:14px 10px;
+    border-radius:12px;
+    font-weight:900;
+    cursor:pointer;
+    user-select:none;
+    text-align:center;
+    min-height:52px;
+  }
+  .kbtn small{display:block;color:var(--muted);font-weight:700;margin-top:3px;font-size:11px}
+  .kbtn:active{transform:translateY(1px)}
+  .kbtn.good{outline:2px solid rgba(101,255,154,0.45)}
+  .kbtn.bad{outline:2px solid rgba(255,107,107,0.45)}
+  .log{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:12px;
+    color:rgba(233,238,246,0.75);
+    line-height:1.55;
+    white-space:pre-wrap;
+    max-height:210px;
+    overflow:auto;
+    padding:10px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:rgba(0,0,0,0.18);
+  }
+  .foot{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.55;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="title">デカブサ式・反射攻防プロト（超簡易）</div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button id="startBtn" class="btn">START</button>
+      <button id="resetBtn" class="btn">RESET</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="hud">
+        <div>
+          <div class="pname">P1 <span id="p1Role" class="tag">—</span></div>
+          <div class="hp">HP: <span id="p1HpTxt">3</span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="pname" style="justify-content:flex-end">P2 <span id="p2Role" class="tag">—</span></div>
+          <div class="hp">HP: <span id="p2HpTxt">3</span></div>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="sub">マークが出たら制限時間内に押す（攻守は毎ターン交代）</div>
+        <div id="mark" class="mark">—</div>
+        <div class="sub" id="status">STARTを押して開始</div>
+        <div class="bar"><div id="timerFill" class="fill"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="controls">
+        <div>
+          <div class="ctrlTitle">
+            <div style="font-weight:900">P1入力</div>
+            <div class="keys">キー: 1=上 / 2=中 / 3=下</div>
+          </div>
+          <div class="grid3">
+            <button class="kbtn" data-player="1" data-move="U">上<small>1</small></button>
+            <button class="kbtn" data-player="1" data-move="M">中<small>2</small></button>
+            <button class="kbtn" data-player="1" data-move="L">下<small>3</small></button>
+          </div>
+        </div>
+        <div>
+          <div class="ctrlTitle">
+            <div style="font-weight:900">P2入力</div>
+            <div class="keys">キー: J=上 / K=中 / L=下</div>
+          </div>
+          <div class="grid3">
+            <button class="kbtn" data-player="2" data-move="U">上<small>J</small></button>
+            <button class="kbtn" data-player="2" data-move="M">中<small>K</small></button>
+            <button class="kbtn" data-player="2" data-move="L">下<small>L</small></button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; display:grid; gap:10px;">
+        <div class="log" id="log"></div>
+        <div class="foot">
+          ルール（最小版）：
+          <br>・毎ターン、攻撃側/守備側が交代
+          <br>・マーク（上/中/下）が出たら、両者とも同じマークを押す（制限時間あり）
+          <br>・攻撃側が成功 & 守備側が失敗（遅れ/未入力/誤入力） → 守備側に1ダメ
+          <br>・攻撃側が失敗 → ダメージなし
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ====== 設定（ここだけ弄れば調整できる） ======
+  const MAX_HP = 3;
+  const TURN_TIME_MS = 900;      // 制限時間（ms）
+  const NEXT_TURN_DELAY_MS = 550;// 結果表示の余韻（ms）
+
+  // ====== 状態 ======
+  let running = false;
+  let gameOver = false;
+
+  let p1Hp = MAX_HP;
+  let p2Hp = MAX_HP;
+
+  // 1ターンごとに攻守交代：odd= P1攻撃, even= P2攻撃
+  let turnIndex = 1;
+
+  // current mark: 'U'/'M'/'L'
+  let mark = null;
+
+  // 入力記録
+  let p1Input = null;
+  let p2Input = null;
+
+  // タイマー
+  let turnStartAt = 0;
+  let rafId = null;
+
+  // ====== DOM ======
+  const $ = (id) => document.getElementById(id);
+  const startBtn = $("startBtn");
+  const resetBtn = $("resetBtn");
+  const markEl = $("mark");
+  const statusEl = $("status");
+  const timerFill = $("timerFill");
+  const logEl = $("log");
+
+  const p1HpTxt = $("p1HpTxt");
+  const p2HpTxt = $("p2HpTxt");
+  const p1Role = $("p1Role");
+  const p2Role = $("p2Role");
+
+  const allButtons = Array.from(document.querySelectorAll(".kbtn"));
+
+  function roleOfP1() { return (turnIndex % 2 === 1) ? "ATTACK" : "DEFENSE"; }
+  function roleOfP2() { return (turnIndex % 2 === 1) ? "DEFENSE" : "ATTACK"; }
+
+  function roleTag(el, role){
+    el.classList.remove("att","def");
+    if(role==="ATTACK"){ el.textContent="攻撃"; el.classList.add("att"); }
+    else { el.textContent="防御"; el.classList.add("def"); }
+  }
+
+  function setHp(){
+    p1HpTxt.textContent = String(p1Hp);
+    p2HpTxt.textContent = String(p2Hp);
+  }
+
+  function moveLabel(m){
+    if(m==="U") return "上";
+    if(m==="M") return "中";
+    if(m==="L") return "下";
+    return "—";
+  }
+
+  function log(line){
+    logEl.textContent = (logEl.textContent ? (logEl.textContent + "\n") : "") + line;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function pickMark(){
+    const r = Math.random();
+    if(r < 1/3) return "U";
+    if(r < 2/3) return "M";
+    return "L";
+  }
+
+  function clearInputs(){
+    p1Input = null;
+    p2Input = null;
+    allButtons.forEach(b => b.classList.remove("good","bad"));
+  }
+
+  function showHUD(){
+    roleTag(p1Role, roleOfP1());
+    roleTag(p2Role, roleOfP2());
+    setHp();
+  }
+
+  function startGame(){
+    if(running) return;
+    running = true;
+    gameOver = false;
+    logEl.textContent = "";
+    log("=== START ===");
+    nextTurn();
+  }
+
+  function resetGame(){
+    running = false;
+    gameOver = false;
+    turnIndex = 1;
+    p1Hp = MAX_HP;
+    p2Hp = MAX_HP;
+    mark = null;
+    clearInputs();
+    setHp();
+    showHUD();
+    markEl.textContent = "—";
+    statusEl.textContent = "STARTを押して開始";
+    timerFill.style.transform = "scaleX(0)";
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    logEl.textContent = "";
+  }
+
+  function endGame(winner){
+    gameOver = true;
+    running = false;
+    statusEl.textContent = `試合終了：${winner} WIN`;
+    log(`*** GAME OVER: ${winner} WIN ***`);
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  function nextTurn(){
+    if(gameOver) return;
+
+    clearInputs();
+    showHUD();
+
+    mark = pickMark();
+    markEl.textContent = moveLabel(mark);
+
+    const atk = (turnIndex % 2 === 1) ? "P1" : "P2";
+    statusEl.textContent = `TURN ${turnIndex}：${atk} 攻撃（${Math.round(TURN_TIME_MS/100)/10}s以内に入力）`;
+    log(`TURN ${turnIndex} / マーク: ${moveLabel(mark)} / 攻撃:${atk}`);
+
+    turnStartAt = performance.now();
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function tick(now){
+    const elapsed = now - turnStartAt;
+    const t = Math.max(0, Math.min(1, 1 - elapsed / TURN_TIME_MS));
+    timerFill.style.transform = `scaleX(${t})`;
+
+    if(elapsed >= TURN_TIME_MS){
+      resolveTurn(true); // time up
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function resolveTurn(timeUp){
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+
+    const p1Atk = (turnIndex % 2 === 1);
+    const atkInput = p1Atk ? p1Input : p2Input;
+    const defInput = p1Atk ? p2Input : p1Input;
+
+    const atkName = p1Atk ? "P1" : "P2";
+    const defName = p1Atk ? "P2" : "P1";
+
+    const atkOK = (atkInput === mark);
+    const defOK = (defInput === mark);
+
+    let msg = "";
+    if(atkOK && !defOK){
+      // 守備側ダメージ
+      if(p1Atk) p2Hp = Math.max(0, p2Hp - 1);
+      else p1Hp = Math.max(0, p1Hp - 1);
+      msg = `HIT! ${atkName}の攻撃が通った（${defName} -1）`;
+    }else if(atkOK && defOK){
+      msg = `GUARD! ${defName}が防いだ`;
+    }else{
+      // 攻撃失敗は無傷
+      msg = `MISS... ${atkName}の攻撃が出なかった`;
+    }
+
+    setHp();
+    statusEl.textContent = msg;
+    log(msg + ` / 入力: ${atkName}=${moveLabel(atkInput)} ${defName}=${moveLabel(defInput)}`);
+
+    // 勝敗
+    if(p1Hp <= 0) { endGame("P2"); return; }
+    if(p2Hp <= 0) { endGame("P1"); return; }
+
+    // 次へ
+    turnIndex++;
+    setTimeout(nextTurn, NEXT_TURN_DELAY_MS);
+  }
+
+  function handleInput(player, mv){
+    if(!running || gameOver) return;
+    if(!mark) return;
+
+    // 入力は最初の1回だけ採用（早押しっぽくする）
+    if(player === 1){
+      if(p1Input) return;
+      p1Input = mv;
+    }else{
+      if(p2Input) return;
+      p2Input = mv;
+    }
+
+    // ボタンのハイライト
+    const btn = allButtons.find(b => Number(b.dataset.player) === player && b.dataset.move === mv);
+    if(btn){
+      const ok = (mv === mark);
+      btn.classList.add(ok ? "good" : "bad");
+    }
+
+    // 両者入力済みなら即解決（テンポUP）
+    if(p1Input && p2Input){
+      resolveTurn(false);
+    }
+  }
+
+  // UIボタン
+  allButtons.forEach(b => {
+    b.addEventListener("click", () => {
+      handleInput(Number(b.dataset.player), b.dataset.move);
+    });
+  });
+
+  // キーボード
+  window.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+    if(k === "1") handleInput(1, "U");
+    else if(k === "2") handleInput(1, "M");
+    else if(k === "3") handleInput(1, "L");
+    else if(k === "j") handleInput(2, "U");
+    else if(k === "k") handleInput(2, "M");
+    else if(k === "l") handleInput(2, "L");
+  });
+
+  // Start/Reset
+  startBtn.addEventListener("click", startGame);
+  resetBtn.addEventListener("click", resetGame);
+
+  // 初期表示
+  resetGame();
+})();
+</script>
+</body>
+</html>
