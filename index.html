@@ -3,62 +3,46 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>デカブサ式・反射攻防プロト（超簡易）</title>
+<title>反射攻防プロト（飛龍の拳っぽい頭部マーク版）</title>
 <style>
   :root{
-    --bg:#0b0f14;
-    --panel:#121a22;
+    --bg0:#07090c;
+    --bg1:#0b0f14;
+    --panel:rgba(255,255,255,0.05);
+    --line:rgba(255,255,255,0.14);
     --text:#e9eef6;
     --muted:rgba(233,238,246,0.65);
     --good:#65ff9a;
     --bad:#ff6b6b;
-    --line:rgba(255,255,255,0.14);
+    --p1:#3dff7a;
+    --p2:#ff5a5a;
+    --arena:#0c121a;
   }
   *{box-sizing:border-box}
   body{
     margin:0;
-    background:linear-gradient(180deg,#07090c,#0b0f14);
+    background:linear-gradient(180deg,var(--bg0),var(--bg1));
     color:var(--text);
     font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
   }
-  .wrap{
-    max-width:780px;
-    margin:0 auto;
-    padding:14px 12px 24px;
-  }
-  .top{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    justify-content:space-between;
-    flex-wrap:wrap;
-  }
-  .title{
-    font-weight:800;
-    letter-spacing:0.04em;
-    font-size:16px;
-    opacity:0.95;
-  }
+  .wrap{max-width:820px;margin:0 auto;padding:14px 12px 24px;}
+  .top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .title{font-weight:900;letter-spacing:.04em;font-size:15px;opacity:.95}
   .btn{
     border:1px solid var(--line);
     background:rgba(255,255,255,0.06);
     color:var(--text);
     padding:10px 12px;
     border-radius:10px;
-    font-weight:700;
+    font-weight:800;
     cursor:pointer;
     user-select:none;
   }
   .btn:active{transform:translateY(1px)}
-  .row{
-    margin-top:12px;
-    display:grid;
-    grid-template-columns: 1fr;
-    gap:12px;
-  }
+  .grid{margin-top:12px;display:grid;grid-template-columns:1fr;gap:12px;}
   .panel{
     border:1px solid var(--line);
-    background:rgba(255,255,255,0.04);
+    background:var(--panel);
     border-radius:14px;
     padding:12px;
   }
@@ -66,14 +50,9 @@
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
+    align-items:end;
   }
-  .pname{
-    font-weight:800;
-    margin-bottom:6px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
+  .pname{font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
   .tag{
     font-size:12px;
     padding:3px 8px;
@@ -81,113 +60,182 @@
     border:1px solid var(--line);
     color:var(--muted);
   }
-  .tag.att{color:var(--good); border-color:rgba(101,255,154,0.35)}
-  .tag.def{color:#8fb5ff; border-color:rgba(143,181,255,0.35)}
-  .hp{
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    letter-spacing:0.08em;
-    font-size:13px;
-    color:var(--muted);
-  }
-  .center{
-    text-align:center;
-    padding:10px 8px 2px;
-  }
-  .mark{
-    font-size:44px;
-    font-weight:900;
-    letter-spacing:0.06em;
-    margin:4px 0 6px;
-  }
-  .sub{
-    color:var(--muted);
-    font-size:13px;
-    line-height:1.5;
-  }
-  .bar{
-    height:10px;
-    border-radius:999px;
+  .tag.att{color:var(--good);border-color:rgba(101,255,154,.35)}
+  .tag.def{color:#8fb5ff;border-color:rgba(143,181,255,.35)}
+  .hp{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;letter-spacing:.08em;font-size:13px;color:var(--muted);}
+  .status{margin-top:10px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
+
+  /* arena */
+  .arena{
+    margin-top:12px;
     border:1px solid var(--line);
-    background:rgba(255,255,255,0.04);
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(12,18,26,.92), rgba(10,14,20,.92));
+    position:relative;
+    height:240px;
     overflow:hidden;
-    margin:10px auto 0;
-    max-width:420px;
   }
-  .fill{
-    height:100%;
-    width:100%;
-    background:linear-gradient(90deg, rgba(101,255,154,0.85), rgba(143,181,255,0.85));
-    transform-origin:left center;
+  .floor{
+    position:absolute;left:0;right:0;bottom:0;height:56px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    border-top:1px solid rgba(255,255,255,0.10);
+  }
+  .ringline{
+    position:absolute;left:0;right:0;bottom:56px;height:1px;background:rgba(255,255,255,0.08);
+  }
+  .fighter{
+    position:absolute;
+    bottom:56px;
+    width:120px;
+    height:160px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .sprite{
+    position:relative;
+    width:84px;
+    height:140px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.14);
+    background:rgba(255,255,255,0.04);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding-top:8px;
+    gap:8px;
+  }
+  .head{
+    width:40px;height:40px;border-radius:999px;
+    border:2px solid rgba(255,255,255,0.20);
+    background:rgba(255,255,255,0.06);
+  }
+  .torso{
+    width:56px;height:54px;border-radius:12px;
+    border:2px solid rgba(255,255,255,0.16);
+    background:rgba(255,255,255,0.05);
+  }
+  .legs{
+    width:46px;height:30px;border-radius:10px;
+    border:2px solid rgba(255,255,255,0.14);
+    background:rgba(255,255,255,0.04);
+    margin-top:auto;margin-bottom:10px;
+  }
+  .p1 .head,.p1 .torso,.p1 .legs{border-color:rgba(61,255,122,.55)}
+  .p2 .head,.p2 .torso,.p2 .legs{border-color:rgba(255,90,90,.55)}
+  .nameplate{
+    position:absolute;top:10px;left:10px;
+    font-weight:900;font-size:12px;color:rgba(233,238,246,0.75);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px 8px;
+    background:rgba(0,0,0,0.18);
+  }
+  .nameplate.right{left:auto;right:10px}
+  .nameplate .dot{
+    display:inline-block;width:8px;height:8px;border-radius:99px;margin-right:6px;
+    background:var(--p1);
+  }
+  .nameplate.right .dot{background:var(--p2)}
+
+  /* marker (over defender) */
+  .marker{
+    position:absolute;
+    width:34px;height:34px;border-radius:999px;
+    border:2px solid rgba(255,255,255,0.28);
+    background:rgba(0,0,0,0.22);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    font-weight:1000;
+    letter-spacing:.02em;
+    transform:translate(-50%,-50%);
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+  .marker.show{display:flex}
+  .marker.u{outline:2px solid rgba(233,238,246,0.24)}
+  .marker.m{outline:2px solid rgba(233,238,246,0.18)}
+  .marker.l{outline:2px solid rgba(233,238,246,0.12)}
+  .marker .in{
+    width:10px;height:10px;border-radius:99px;background:rgba(233,238,246,0.85);
   }
 
+  /* timer bar */
+  .bar{
+    height:10px;border-radius:999px;border:1px solid var(--line);
+    background:rgba(255,255,255,0.04);
+    overflow:hidden;margin:10px auto 0;max-width:520px;
+  }
+  .fill{
+    height:100%;width:100%;
+    background:linear-gradient(90deg, rgba(101,255,154,0.85), rgba(143,181,255,0.85));
+    transform-origin:left center;
+    transform:scaleX(0);
+  }
+
+  /* controls */
   .controls{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:12px;
   }
-  .ctrlTitle{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:8px;
-    margin-bottom:8px;
-  }
+  .ctrlTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
   .keys{
     font-size:12px;color:var(--muted);
     border:1px solid var(--line);
     padding:4px 8px;border-radius:999px;
   }
-  .grid3{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-  }
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   .kbtn{
     border:1px solid var(--line);
     background:rgba(255,255,255,0.06);
     color:var(--text);
     padding:14px 10px;
     border-radius:12px;
-    font-weight:900;
+    font-weight:1000;
     cursor:pointer;
     user-select:none;
     text-align:center;
     min-height:52px;
   }
-  .kbtn small{display:block;color:var(--muted);font-weight:700;margin-top:3px;font-size:11px}
+  .kbtn small{display:block;color:var(--muted);font-weight:800;margin-top:3px;font-size:11px}
   .kbtn:active{transform:translateY(1px)}
   .kbtn.good{outline:2px solid rgba(101,255,154,0.45)}
   .kbtn.bad{outline:2px solid rgba(255,107,107,0.45)}
   .log{
+    margin-top:12px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size:12px;
     color:rgba(233,238,246,0.75);
     line-height:1.55;
     white-space:pre-wrap;
-    max-height:210px;
+    max-height:200px;
     overflow:auto;
     padding:10px;
     border-radius:12px;
     border:1px solid var(--line);
     background:rgba(0,0,0,0.18);
   }
-  .foot{
-    margin-top:10px;
-    color:var(--muted);
-    font-size:12px;
-    line-height:1.55;
+  .foot{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}
+
+  @media (min-width:820px){
+    .grid{grid-template-columns:1fr}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="title">デカブサ式・反射攻防プロト（超簡易）</div>
+    <div class="title">反射攻防プロト（飛龍の拳っぽい頭部マーク版）</div>
     <div style="display:flex; gap:8px; align-items:center;">
       <button id="startBtn" class="btn">START</button>
       <button id="resetBtn" class="btn">RESET</button>
     </div>
   </div>
 
-  <div class="row">
+  <div class="grid">
     <div class="panel">
       <div class="hud">
         <div>
@@ -200,19 +248,42 @@
         </div>
       </div>
 
-      <div class="center">
-        <div class="sub">マークが出たら制限時間内に押す（攻守は毎ターン交代）</div>
-        <div id="mark" class="mark">—</div>
-        <div class="sub" id="status">STARTを押して開始</div>
-        <div class="bar"><div id="timerFill" class="fill"></div></div>
+      <div class="arena" id="arena">
+        <div class="nameplate"><span class="dot"></span>P1</div>
+        <div class="nameplate right"><span class="dot"></span>P2</div>
+
+        <div class="fighter p1" id="p1F" style="left:18%;">
+          <div class="sprite">
+            <div class="head"></div>
+            <div class="torso"></div>
+            <div class="legs"></div>
+          </div>
+        </div>
+
+        <div class="fighter p2" id="p2F" style="right:18%;">
+          <div class="sprite">
+            <div class="head"></div>
+            <div class="torso"></div>
+            <div class="legs"></div>
+          </div>
+        </div>
+
+        <!-- defender marker -->
+        <div class="marker" id="marker" aria-hidden="true"><div class="in"></div></div>
+
+        <div class="ringline"></div>
+        <div class="floor"></div>
       </div>
+
+      <div class="status" id="status">STARTを押して開始</div>
+      <div class="bar"><div id="timerFill" class="fill"></div></div>
     </div>
 
     <div class="panel">
       <div class="controls">
         <div>
           <div class="ctrlTitle">
-            <div style="font-weight:900">P1入力</div>
+            <div style="font-weight:1000">P1入力</div>
             <div class="keys">キー: 1=上 / 2=中 / 3=下</div>
           </div>
           <div class="grid3">
@@ -223,7 +294,7 @@
         </div>
         <div>
           <div class="ctrlTitle">
-            <div style="font-weight:900">P2入力</div>
+            <div style="font-weight:1000">P2入力</div>
             <div class="keys">キー: J=上 / K=中 / L=下</div>
           </div>
           <div class="grid3">
@@ -234,15 +305,14 @@
         </div>
       </div>
 
-      <div style="margin-top:12px; display:grid; gap:10px;">
-        <div class="log" id="log"></div>
-        <div class="foot">
-          ルール（最小版）：
-          <br>・毎ターン、攻撃側/守備側が交代
-          <br>・マーク（上/中/下）が出たら、両者とも同じマークを押す（制限時間あり）
-          <br>・攻撃側が成功 & 守備側が失敗（遅れ/未入力/誤入力） → 守備側に1ダメ
-          <br>・攻撃側が失敗 → ダメージなし
-        </div>
+      <div class="log" id="log"></div>
+      <div class="foot">
+        ルール（最小版）：
+        <br>・毎ターン、攻撃側/守備側が交代
+        <br>・マーク（上/中/下）は<strong>防御側</strong>の頭付近に表示（位置の高さで上中下）
+        <br>・両者とも「上/中/下」を入力（制限時間あり）
+        <br>・攻撃側が成功 & 守備側が失敗（遅れ/未入力/誤入力） → 守備側に1ダメ
+        <br>・攻撃側が失敗 → ダメージなし
       </div>
     </div>
   </div>
@@ -250,10 +320,19 @@
 
 <script>
 (() => {
-  // ====== 設定（ここだけ弄れば調整できる） ======
+  // ====== 設定 ======
   const MAX_HP = 3;
-  const TURN_TIME_MS = 900;      // 制限時間（ms）
-  const NEXT_TURN_DELAY_MS = 550;// 結果表示の余韻（ms）
+  const TURN_TIME_MS = 900;       // 制限時間（ms）
+  const NEXT_TURN_DELAY_MS = 520; // 余韻（ms）
+  const RESOLVE_EARLY_IF_BOTH_INPUT = true; // 両者入力済みなら即解決
+
+  // マーク位置（防御側の“頭の上”基準で上下にズラす）
+  // ここ弄ると飛龍の拳っぽい位置調整できる
+  const MARK_OFFSETS = {
+    U: { dx: 0,  dy: -8 },   // 頭の上
+    M: { dx: 0,  dy: 26 },   // 胸あたり
+    L: { dx: 0,  dy: 64 },   // 足元あたり
+  };
 
   // ====== 状態 ======
   let running = false;
@@ -262,13 +341,13 @@
   let p1Hp = MAX_HP;
   let p2Hp = MAX_HP;
 
-  // 1ターンごとに攻守交代：odd= P1攻撃, even= P2攻撃
+  // odd= P1攻撃 / even= P2攻撃
   let turnIndex = 1;
 
   // current mark: 'U'/'M'/'L'
   let mark = null;
 
-  // 入力記録
+  // 入力
   let p1Input = null;
   let p2Input = null;
 
@@ -280,7 +359,6 @@
   const $ = (id) => document.getElementById(id);
   const startBtn = $("startBtn");
   const resetBtn = $("resetBtn");
-  const markEl = $("mark");
   const statusEl = $("status");
   const timerFill = $("timerFill");
   const logEl = $("log");
@@ -289,6 +367,11 @@
   const p2HpTxt = $("p2HpTxt");
   const p1Role = $("p1Role");
   const p2Role = $("p2Role");
+
+  const arena = $("arena");
+  const p1F = $("p1F");
+  const p2F = $("p2F");
+  const marker = $("marker");
 
   const allButtons = Array.from(document.querySelectorAll(".kbtn"));
 
@@ -337,6 +420,34 @@
     setHp();
   }
 
+  function hideMarker(){
+    marker.classList.remove("show","u","m","l");
+  }
+
+  // 防御側の“頭部中心”を基準にマークを置く
+  function positionMarkerOverDefender(m){
+    const defenderEl = (turnIndex % 2 === 1) ? p2F : p1F; // P1攻撃ならP2が守備
+    const headEl = defenderEl.querySelector(".head");
+
+    // arena内での座標を作る
+    const a = arena.getBoundingClientRect();
+    const h = headEl.getBoundingClientRect();
+
+    const headCx = (h.left + h.right) / 2 - a.left;
+    const headCy = (h.top + h.bottom) / 2 - a.top;
+
+    const off = MARK_OFFSETS[m];
+    const x = headCx + off.dx;
+    const y = headCy + off.dy;
+
+    marker.style.left = x + "px";
+    marker.style.top  = y + "px";
+
+    marker.classList.remove("u","m","l");
+    marker.classList.add(m === "U" ? "u" : m === "M" ? "m" : "l");
+    marker.classList.add("show");
+  }
+
   function startGame(){
     if(running) return;
     running = true;
@@ -356,9 +467,9 @@
     clearInputs();
     setHp();
     showHUD();
-    markEl.textContent = "—";
     statusEl.textContent = "STARTを押して開始";
     timerFill.style.transform = "scaleX(0)";
+    hideMarker();
     if(rafId) cancelAnimationFrame(rafId);
     rafId = null;
     logEl.textContent = "";
@@ -369,6 +480,7 @@
     running = false;
     statusEl.textContent = `試合終了：${winner} WIN`;
     log(`*** GAME OVER: ${winner} WIN ***`);
+    hideMarker();
     if(rafId) cancelAnimationFrame(rafId);
     rafId = null;
   }
@@ -380,11 +492,16 @@
     showHUD();
 
     mark = pickMark();
-    markEl.textContent = moveLabel(mark);
 
     const atk = (turnIndex % 2 === 1) ? "P1" : "P2";
-    statusEl.textContent = `TURN ${turnIndex}：${atk} 攻撃（${Math.round(TURN_TIME_MS/100)/10}s以内に入力）`;
-    log(`TURN ${turnIndex} / マーク: ${moveLabel(mark)} / 攻撃:${atk}`);
+    statusEl.textContent = `TURN ${turnIndex}：${atk} 攻撃（${Math.round(TURN_TIME_MS/100)/10}s以内）`;
+
+    // 防御側の頭部付近にマーク表示
+    // レイアウト確定後に置きたいので、次のフレームで位置計算
+    hideMarker();
+    requestAnimationFrame(() => positionMarkerOverDefender(mark));
+
+    log(`TURN ${turnIndex} / マーク:${moveLabel(mark)} / 攻撃:${atk}`);
 
     turnStartAt = performance.now();
     if(rafId) cancelAnimationFrame(rafId);
@@ -397,7 +514,7 @@
     timerFill.style.transform = `scaleX(${t})`;
 
     if(elapsed >= TURN_TIME_MS){
-      resolveTurn(true); // time up
+      resolveTurn(true);
       return;
     }
     rafId = requestAnimationFrame(tick);
@@ -419,20 +536,18 @@
 
     let msg = "";
     if(atkOK && !defOK){
-      // 守備側ダメージ
       if(p1Atk) p2Hp = Math.max(0, p2Hp - 1);
       else p1Hp = Math.max(0, p1Hp - 1);
       msg = `HIT! ${atkName}の攻撃が通った（${defName} -1）`;
     }else if(atkOK && defOK){
       msg = `GUARD! ${defName}が防いだ`;
     }else{
-      // 攻撃失敗は無傷
       msg = `MISS... ${atkName}の攻撃が出なかった`;
     }
 
     setHp();
     statusEl.textContent = msg;
-    log(msg + ` / 入力: ${atkName}=${moveLabel(atkInput)} ${defName}=${moveLabel(defInput)}`);
+    log(msg + ` / 入力:${atkName}=${moveLabel(atkInput)} ${defName}=${moveLabel(defInput)}`);
 
     // 勝敗
     if(p1Hp <= 0) { endGame("P2"); return; }
@@ -447,7 +562,7 @@
     if(!running || gameOver) return;
     if(!mark) return;
 
-    // 入力は最初の1回だけ採用（早押しっぽくする）
+    // 入力は最初の1回だけ採用（早押しっぽく）
     if(player === 1){
       if(p1Input) return;
       p1Input = mv;
@@ -463,8 +578,7 @@
       btn.classList.add(ok ? "good" : "bad");
     }
 
-    // 両者入力済みなら即解決（テンポUP）
-    if(p1Input && p2Input){
+    if(RESOLVE_EARLY_IF_BOTH_INPUT && p1Input && p2Input){
       resolveTurn(false);
     }
   }
@@ -491,7 +605,13 @@
   startBtn.addEventListener("click", startGame);
   resetBtn.addEventListener("click", resetGame);
 
-  // 初期表示
+  // 画面回転などでマーク位置がズレるのを防ぐ（表示中だけ再配置）
+  window.addEventListener("resize", () => {
+    if(running && mark){
+      requestAnimationFrame(() => positionMarkerOverDefender(mark));
+    }
+  });
+
   resetGame();
 })();
 </script>
